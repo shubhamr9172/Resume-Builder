@@ -177,7 +177,7 @@ function SortableExperienceItem({ item, updateExperience, removeExperience }: So
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-6 text-xs bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100"
+                                className="h-6 text-xs bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                                 onClick={handleAIAssist}
                             >
                                 <Sparkles className="w-3 h-3 mr-1" />

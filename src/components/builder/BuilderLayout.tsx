@@ -1,133 +1,145 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+    LayoutTemplate,
+    Palette,
+    FileText,
+    Download,
+    Home,
+    Settings,
+    ChevronLeft,
+    ChevronRight,
+    User,
+    Briefcase,
+    GraduationCap,
+    Code,
+    Sparkles
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FileText, Layout, Palette, Settings, Download, Share2, Home } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ResumePreview } from './ResumePreview';
-import { DesignPanel } from './DesignPanel';
-import { ExportPanel } from '../export/ExportPanel';
+import { usePDF } from '@react-pdf/renderer';
+import ResumeDocument from '@/components/templates/ResumeDocument';
+import { useResumeStore } from '@/store/useResumeStore';
 
 interface BuilderLayoutProps {
     children: React.ReactNode;
 }
 
-export function BuilderLayout({ children }: BuilderLayoutProps) {
-    const searchParams = useSearchParams();
-    const tabParam = searchParams.get('tab');
-    const [activeTab, setActiveTab] = useState(tabParam || 'editor');
+export default function BuilderLayout({ children }: BuilderLayoutProps) {
+    const pathname = usePathname();
     const router = useRouter();
+    const { resumeData, selectedTemplate, themeColor } = useResumeStore();
+    const [instance, updateInstance] = usePDF({ document: <ResumeDocument data={resumeData} template={selectedTemplate} themeColor={themeColor} /> });
 
-    useEffect(() => {
-        if (tabParam && ['editor', 'design', 'settings', 'export'].includes(tabParam)) {
-            setActiveTab(tabParam);
+    // Handle PDF Download
+    const handleDownload = () => {
+        if (instance.url) {
+            const link = document.createElement('a');
+            link.href = instance.url;
+            link.download = `resume_${resumeData.personalInfo.fullName.replace(/\s+/g, '_')}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
-    }, [tabParam]);
+    };
 
     return (
-        <div className="flex h-screen w-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
-            {/* Left Sidebar - Navigation */}
-            <aside className="w-16 flex-shrink-0 border-r border-white/10 bg-white/5 backdrop-blur-sm flex flex-col items-center py-4 gap-4">
-                <button
-                    onClick={() => router.push('/')}
-                    className="p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg mb-2 transition-colors"
-                    title="Home"
-                >
-                    <Home className="w-6 h-6 text-purple-400" />
-                </button>
-                <div className="w-10 h-px bg-white/10 mb-2"></div>
+        <div className="flex h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+            {/* Sidebar Navigation */}
+            <aside className="w-20 lg:w-64 bg-slate-900/50 backdrop-blur-xl border-r border-white/10 flex flex-col justify-between py-6 transition-all duration-300 z-50">
+                <div className="px-4">
+                    <Link href="/" className="flex items-center gap-3 mb-12 pl-2">
+                        <div className="p-2 bg-slate-500/20 hover:bg-slate-500/30 rounded-lg mb-2 transition-colors">
+                            <Home className="w-6 h-6 text-slate-400" />
+                        </div>
+                        <span className="hidden lg:block text-xl font-bold text-white tracking-tight">SmartResume</span>
+                    </Link>
 
-                <nav className="flex flex-col gap-2 w-full px-2">
-                    <NavButton
-                        icon={<Layout className="w-5 h-5" />}
-                        label="Editor"
-                        isActive={activeTab === 'editor'}
-                        onClick={() => setActiveTab('editor')}
-                    />
-                    <NavButton
-                        icon={<Palette className="w-5 h-5" />}
-                        label="Design"
-                        isActive={activeTab === 'design'}
-                        onClick={() => setActiveTab('design')}
-                    />
-                    <NavButton
-                        icon={<Settings className="w-5 h-5" />}
-                        label="Settings"
-                        isActive={activeTab === 'settings'}
-                        onClick={() => setActiveTab('settings')}
-                    />
-                </nav>
+                    <nav className="space-y-2">
+                        <NavItem icon={<FileText />} label="Content" href="/builder" active={pathname === '/builder'} />
+                        <NavItem icon={<Palette />} label="Design" href="/builder?tab=design" active={pathname.includes('design')} />
+                    </nav>
+                </div>
 
-                <div className="mt-auto flex flex-col gap-2 w-full px-2">
-                    <NavButton
-                        icon={<Download className="w-5 h-5" />}
-                        label="Export"
-                        isActive={activeTab === 'export'}
-                        onClick={() => setActiveTab('export')}
-                    />
+                <div className="px-4">
+                    <div className="p-4 bg-slate-800/50 rounded-xl border border-white/5 mb-4 hidden lg:block">
+                        <p className="text-xs text-gray-400 mb-2">Completion Status</p>
+                        <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-full bg-slate-400 w-3/4 rounded-full"></div>
+                        </div>
+                    </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex overflow-hidden">
-                {/* Editor Panel (Left/Center) */}
-                <div className="w-1/2 border-r border-white/10 bg-slate-800/50 backdrop-blur-sm flex flex-col">
-                    <header className="h-14 border-b border-white/10 flex items-center px-6 justify-between flex-shrink-0 bg-white/5">
-                        <h1 className="font-semibold text-lg text-white">
-                            {activeTab === 'editor' && 'Content Editor'}
-                            {activeTab === 'design' && 'Design & Templates'}
-                            {activeTab === 'settings' && 'Settings'}
-                            {activeTab === 'export' && 'Export Resume'}
-                        </h1>
-                    </header>
-                    <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                        <div className="max-w-2xl mx-auto space-y-8 pb-20">
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                {activeTab === 'editor' && children}
-                                {activeTab === 'design' && <DesignPanel />}
-                                {activeTab === 'settings' && <div className="text-center text-gray-400 mt-10">Settings coming soon...</div>}
-                                {activeTab === 'export' && <ExportPanel />}
-                            </div>
-                        </div>
+            <main className="flex-1 flex overflow-hidden relative">
+
+                {/* Left Panel: Form / Editor */}
+                <div className="w-full lg:w-1/2 xl:w-5/12 h-full overflow-y-auto p-6 lg:p-10 scrollbar-hide pb-32">
+                    <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {children}
                     </div>
                 </div>
 
-                {/* Live Preview Panel (Right) */}
-                <div className="w-1/2 bg-slate-800/30 flex flex-col">
-                    <header className="h-14 border-b border-white/10 flex items-center px-6 justify-between bg-white/5 backdrop-blur flex-shrink-0">
-                        <span className="text-sm text-gray-300">Live Preview</span>
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Share
+                {/* Right Panel: Live Preview (Desktop Only) */}
+                <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 bg-slate-950/50 relative items-center justify-center p-8 border-l border-white/5">
+
+                    {/* Toolbar */}
+                    <div className="absolute top-6 right-6 flex gap-3 z-40">
+                        <div className="flex bg-slate-900/80 backdrop-blur-md rounded-full p-1 border border-white/10">
+                            <Button
+                                onClick={handleDownload}
+                                disabled={instance.loading}
+                                className="rounded-full bg-slate-600 hover:bg-slate-500 text-white px-6"
+                            >
+                                {instance.loading ? 'Generating...' : <><Download className="w-4 h-4 mr-2" /> Download PDF</>}
                             </Button>
                         </div>
-                    </header>
-                    <div className="flex-1 p-8 overflow-y-auto flex justify-center bg-slate-900/50">
-                        <div className="w-[210mm] min-h-[297mm] bg-white shadow-2xl rounded-sm origin-top transform scale-[0.6] lg:scale-[0.7] xl:scale-[0.85] transition-all duration-300 hover:shadow-purple-500/20">
-                            <ResumePreview />
+                    </div>
+
+                    {/* Resume Preview */}
+                    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                        <div className="w-[210mm] min-h-[297mm] bg-white shadow-2xl rounded-sm origin-top transform scale-[0.6] lg:scale-[0.7] xl:scale-[0.85] transition-all duration-300 hover:shadow-slate-500/20">
+                            {/* This would be the actual PDF Viewer or HTML Preview */}
+                            <ResumeDocument data={resumeData} template={selectedTemplate} themeColor={themeColor} isPreview={true} />
                         </div>
                     </div>
+
                 </div>
             </main>
         </div>
     );
 }
 
-function NavButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, label: string, isActive: boolean, onClick: () => void }) {
+function NavItem({ icon, label, href, active }: { icon: React.ReactNode, label: string, href: string, active: boolean }) {
+    const router = useRouter();
+    const isActive = active;
+
     return (
-        <Button
-            variant={isActive ? "secondary" : "ghost"}
-            size="icon"
-            className={cn(
-                "w-full h-12 rounded-lg mb-1 transition-all duration-200",
-                isActive ? "bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 shadow-lg shadow-purple-500/20" : "text-gray-400 hover:text-purple-400 hover:bg-white/5"
-            )}
-            onClick={onClick}
-            title={label}
-        >
-            {icon}
-        </Button>
-    )
+        <TooltipProvider>
+            <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                    <button
+                        onClick={() => router.push(href)}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                            isActive ? "bg-slate-500/20 text-slate-400 hover:bg-slate-500/30 shadow-lg shadow-slate-500/20" : "text-gray-400 hover:text-slate-400 hover:bg-white/5"
+                        )}
+                    >
+                        <span className={cn("transition-transform duration-200", isActive && "scale-110")}>{icon}</span>
+                        <span className="hidden lg:block font-medium">{label}</span>
+                        {isActive && <motion.div layoutId="active-indicator" className="ml-auto w-1.5 h-1.5 rounded-full bg-slate-400 hidden lg:block" />}
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="lg:hidden bg-slate-800 text-white border-white/10">
+                    {label}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
 }

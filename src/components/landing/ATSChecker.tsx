@@ -193,7 +193,7 @@ export function ATSChecker() {
             <div
                 className={cn(
                     "border-2 border-dashed rounded-2xl p-12 text-center transition-all",
-                    dragActive ? "border-purple-400 bg-purple-500/10" : "border-white/20 bg-white/5",
+                    dragActive ? "border-slate-400 bg-slate-500/10" : "border-white/20 bg-white/5",
                     !result && "backdrop-blur-sm"
                 )}
                 onDrop={handleDrop}
@@ -202,14 +202,14 @@ export function ATSChecker() {
             >
                 {!file && !analyzing && (
                     <>
-                        <Upload className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                        <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                         <h3 className="text-xl font-semibold text-white mb-2">
                             Drop your resume here
                         </h3>
                         <p className="text-gray-400 mb-4">or</p>
                         <Button
                             onClick={() => document.getElementById('resume-upload')?.click()}
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            className="bg-slate-600 hover:bg-slate-700 text-white"
                         >
                             Browse Files
                         </Button>
@@ -226,7 +226,7 @@ export function ATSChecker() {
 
                 {analyzing && (
                     <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-16 h-16 border-4 border-slate-500 border-t-transparent rounded-full animate-spin"></div>
                         <p className="text-white text-lg">Analyzing your resume...</p>
                     </div>
                 )}
@@ -277,7 +277,7 @@ export function ATSChecker() {
                     {/* Suggestions Card */}
                     <div className="bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
                         <div className="flex items-center gap-2 mb-4">
-                            <TrendingUp className="w-5 h-5 text-purple-400" />
+                            <TrendingUp className="w-5 h-5 text-slate-400" />
                             <h3 className="text-lg font-semibold text-white">Improvement Suggestions</h3>
                         </div>
                         <div className="space-y-3">
@@ -305,7 +305,7 @@ export function ATSChecker() {
                                 setResult(null);
                             }}
                             variant="outline"
-                            className="w-full mt-6 border-purple-400 text-purple-400 hover:bg-purple-500/10"
+                            className="w-full mt-6 border-slate-400 text-slate-400 hover:bg-slate-500/10"
                         >
                             Check Another Resume
                         </Button>
